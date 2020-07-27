@@ -5,6 +5,7 @@ A bioinformatics software pipeline to simplify the analysis of gene neighborhood
 <h2> Dependencies </h2>
 Currently, Linux is supported. All external software/package dependencies are checked at the beginning of the workflow, and if given user permission, will download automatically prior to running. 
 
+
 Please note that Python must be version 3.5 or higher to avoid the need for backwards compatibility.
 
 Links to repositories used:
