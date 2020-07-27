@@ -13,7 +13,7 @@ long_description="A bioinformatics pipeline designed to simplify the \
       gene neighborhoods."
       
 setup(
-      name="namespace.gene_neighborhoods_pipeline",
+      name="gene_neighborhoods_pipeline",
       version="0.1.0",
       package_dir={"": "src"},
       packages=find_namespace_packages(where="src")),
