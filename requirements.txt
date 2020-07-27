@@ -1,4 +1,3 @@
-#Gene_neighborhoods_pipeline requirements
 prokka>=1.14.5
 rgi>=5.1.1
 numpy>=1.19.0
