@@ -1,12 +1,83 @@
 #!/usr/bin/env python
 
-#Script to ouput ete3 powered phylogenetic tree visualizations given 
-#a homologous sequence file
+"""
+Script to ouput ete3 powered phylogenetic tree visualizations given 
+a homologous sequence file. 
+Note that the MUSCLE binary file must be contained in this directory.
+"""
 
 import sys
 import subprocess
 import argparse 
+import hashlib
 import ete3 as et
+
+"""
+Returns a list of all taxa that share the same sequence
+Parameters:
+    seq_dict: keys <- taxa identifiers, values <- sequences
+    seq: sequence to look for
+"""
+def get_taxa(seq_dict, seq):
+    
+    identical_taxa = []
+    
+    for taxa, sequence in seq_dict.items():
+        
+        if (sequence == seq):
+            identical_taxa.append(taxa)
+    
+    return identical_taxa
+        
+        
+"""Replaces identical sequences with a surrogate to clean up 
+phylogenetic tree"""
+        
+def check_surrogates(hom_seq_file):
+    
+    taxa = []
+    seqs = []
+    
+    #Check homologous sequence file for any identical sequences
+    with open(hom_seq_file, 'r') as file:
+        
+        lines = file.read()
+        
+        for line in lines.split("\n"):
+            
+            if (line != ""):
+                
+                #Store taxa identifiers and sequences
+                if (line[0] == ">"):
+                    taxa.append(line)
+                    
+                else:
+                    seqs.append(line)
+                    
+    hom_seqs = dict(zip(taxa, seqs))
+    
+    #Retain unique sequences
+    seqs = list(set(seqs))
+    
+    #Make new homologous sequence file
+    new_file = open("clean_seq_align.fasta", "w+")
+    
+    for seq in seqs:
+        
+        taxa = get_taxa(hom_seqs, seq)
+        
+        #Generate a surrogate for every identical sequence
+        if (len(taxa) > 1):
+            #Annotate surrogate with # of seqs it stands in for
+            surrogate = ">sequence_surrogate_"+str(len(taxa))
+            new_file.write(surrogate+"\n")
+            new_file.write(seq+"\n")
+
+        #Otherwise assume identical sequence
+        else:
+            new_file.write(taxa[0]+"\n")
+            new_file.write(seq+"\n")
+
       
 def make_tree_vis(newick_tree, gene_name, file_name):
     
@@ -66,9 +137,12 @@ if __name__ == '__main__':
     
     args = vars(parser.parse_args())
     
+    #Create a new homologous sequence file with surrogates where appropriate
+    check_surrogates(str(sys.argv[2]))
+    
     #Call on MUSCLE alignment tool: MUSCLE binary file must be in directory
-    subprocess.run(['muscle','-in',str(sys.argv[2]),'-out',str(sys.argv[2])+\
-                    '_align.fasta'])
+    subprocess.run(['muscle','-in',"clean_seq_align.fasta",'-out',\
+                    str(sys.argv[2])+'_align.fasta'])
     
     #Call IQ-TREE: automatically detect best model and perform 1000 BS
     subprocess.run(['iqtree','-s',str(sys.argv[2])+'_align.fasta','-m','MFP',\
