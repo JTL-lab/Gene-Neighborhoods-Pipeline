@@ -39,10 +39,6 @@ def get_cluster_vis(RF_matrix, BSD_matrix):
     nj_tree_bsd = pdm_bsd.nj_tree()
     nj_bsd_str = clean_string(nj_tree_bsd.as_string("newick"))
     
-    print(upgma_rf_str)
-    print()
-    print(upgma_bsd_str)
-    
     #Create visualizations
     upgma_rf_tree = make_tree_vis(upgma_rf_str, "UPGMA RF", "UPGMA_RF")
     upgma_bsd_tree = make_tree_vis(upgma_bsd_str, "UPGMA BSD", "UPGMA_BSD")
@@ -53,35 +49,35 @@ def get_cluster_vis(RF_matrix, BSD_matrix):
 
 if __name__ == '__main__':
     
-    #parser = argparse.ArgumentParser(description="Script to create UPGMA and\
-     #                                NJ tree cluster visualizations from .csv\
-      #                               distance matrixes.")
+    parser = argparse.ArgumentParser(description="Script to create UPGMA and\
+                                     NJ tree cluster visualizations from .csv\
+                                     distance matrixes.")
     
-    #parser.add_argument('-matrix_path', '-mp', type=str,
-                #    help='Path to .csv files containing distance matrices.')
+    parser.add_argument('-matrix_path', '-mp', type=str,
+                    help='Path to .csv files containing distance matrices.')
     
-    #args = parser.parse_args()
+    args = parser.parse_args()
     
-    #try:
-     #   os.path.exists(str(sys.argv[2]))
-      #  logging.debug("Path to matrices is valid")
-       # os.chdir(args.matrix_path)
+    try:
+        os.path.exists(str(sys.argv[2]))
+        logging.debug("Path to matrices is valid")
+        os.chdir(args.matrix_path)
         
-    #except:
-     #   logging.error("Path is invalid!")
-      #  path_invalid = True
+    except:
+       logging.error("Path is invalid!")
+        path_invalid = True
 
-    #if path_invalid:
-     #   logging.error("Path to distance matrix was invalid.\
+    if path_invalid:
+        logging.error("Path to distance matrix was invalid.\
                     #  Please use valid path.")
-      #  sys.exit(1)
+        sys.exit(1)
     
     with open('rf_matrix.csv', 'r') as rf_matrix:
-        RF_data = rf_matrix.read() #.replace('\n', '')
+        RF_data = rf_matrix.read()
         print(RF_data)
     
     with open('bsd_matrix.csv', 'r') as bsd_matrix:
-        BSD_data = bsd_matrix.read() #.replace('\n', '')
+        BSD_data = bsd_matrix.read()
         print(BSD_data)
         
     get_cluster_vis(RF_data, BSD_data)
