@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+
 import os
 import sys
-import subprocess
 import argparse
+import logging
 import ete3 as et
 import dendropy as dd
 from dendropy.utility.textprocessing import StringIO
@@ -11,10 +12,10 @@ from make_ML_tree_vis import make_tree_vis
 def clean_string(dd_cluster):
     
     clust = dd_cluster.split(" ")
-    clust[1].replace("'", "")
-    clust.pop(0)
+    clust_s = clust[1].replace("'", "")
+    clust_str = clust_s.replace("\n","")
     
-    return clust
+    return clust[1]
     
 def get_cluster_vis(RF_matrix, BSD_matrix): 
     
@@ -33,37 +34,55 @@ def get_cluster_vis(RF_matrix, BSD_matrix):
 
     #Neighbor Joining trees
     nj_tree_rf = pdm_rf.nj_tree()
-    nj_rf_str = clean_string((nj_tree_rf.as_string("newick"))
+    nj_rf_str = clean_string(nj_tree_rf.as_string("newick"))
 
     nj_tree_bsd = pdm_bsd.nj_tree()
     nj_bsd_str = clean_string(nj_tree_bsd.as_string("newick"))
     
+    print(upgma_rf_str)
+    print()
+    print(upgma_bsd_str)
+    
     #Create visualizations
-    upgma_rf_tree = make_tree_vis(upgma_rf_str, "UPGMA RF")
-    upgma_bsd_tree = make_tree_vis(upgma_bsd_str, "UPGMA BSD")
-    nj_rf_tree = make_tree_vis(upgma_rf_str, "NJ RF")
-    nj_rf_tree = make_tree_vis(upgma_rf_str, "NJ BSD")
+    upgma_rf_tree = make_tree_vis(upgma_rf_str, "UPGMA RF", "UPGMA_RF")
+    upgma_bsd_tree = make_tree_vis(upgma_bsd_str, "UPGMA BSD", "UPGMA_BSD")
+    nj_rf_tree = make_tree_vis(nj_rf_str, "NJ RF","NJ_RF")
+    nj_bsd_tree = make_tree_vis(nj_bsd_str, "NJ BSD", "NJ_BSD")
     
 
 
 if __name__ == '__main__':
     
-    parser = argparse.ArgumentParser(description="Script to create UPGMA and \
-                                     NJ clusters from .csv distance matrixes.")
+    #parser = argparse.ArgumentParser(description="Script to create UPGMA and\
+     #                                NJ tree cluster visualizations from .csv\
+      #                               distance matrixes.")
     
-    parser.add_argument('-rf_matrix', '-rf', type=str,
-                        help='Name of .csv containing RF distance matrix.')
+    #parser.add_argument('-matrix_path', '-mp', type=str,
+                #    help='Path to .csv files containing distance matrices.')
     
-    parser.add_argument('-bsd_matrix', '-bsd', type=str,
-                        help='Name of .csv containing BSD distance matrix.')
+    #args = parser.parse_args()
     
-    args = parser.parse_args()
+    #try:
+     #   os.path.exists(str(sys.argv[2]))
+      #  logging.debug("Path to matrices is valid")
+       # os.chdir(args.matrix_path)
+        
+    #except:
+     #   logging.error("Path is invalid!")
+      #  path_invalid = True
+
+    #if path_invalid:
+     #   logging.error("Path to distance matrix was invalid.\
+                    #  Please use valid path.")
+      #  sys.exit(1)
     
-    with open(str(argsv[2]), 'r') as file_1:
-        RF_data = file_1.read().replace('\n', '')
+    with open('rf_matrix.csv', 'r') as rf_matrix:
+        RF_data = rf_matrix.read() #.replace('\n', '')
+        print(RF_data)
     
-    with open(str(argsv[4]), 'r') as file_2:
-        BSD_data = file_2.read().replace('\n', '')
+    with open('bsd_matrix.csv', 'r') as bsd_matrix:
+        BSD_data = bsd_matrix.read() #.replace('\n', '')
+        print(BSD_data)
         
     get_cluster_vis(RF_data, BSD_data)
         
