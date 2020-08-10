@@ -22,7 +22,7 @@ ete3: https://github.com/etetoolkit/ete
 DendroPy: https://github.com/jeetsukumaran/DendroPy
 
 <h2> Structure </h2> 
-...
+::
 ├── config
 ├── docs
 │   └── pipeline_visualization.png
@@ -41,3 +41,7 @@ DendroPy: https://github.com/jeetsukumaran/DendroPy
         │   └── make_ML_tree_vis.cpython-38.pyc
         ├── tree_clustering.py
         └── tree_distances.py
+
+<h2> Authors </h2>
+Chandana @ ()
+Julia Lewandowski @ (JTL-lab)
