@@ -5,10 +5,6 @@ Script to generate distance matrixes (Robinson - Foulds and Boot Split \
 Distance) for all bootstrapped trees contained within a directory of .treefiles
 """
 
-#Exception(s) to add:
-# - if no treefiles are found
-# - if less than four treefiles are found
-
 import os
 import sys
 import argparse
@@ -166,50 +162,50 @@ def get_bsd(tree_1, tree_2):
 
 
 def make_distance_matrix(tree_dict, tree_list, dist_type):
-    
+
     if (dist_type == 'rf'):
         file_name = "rf_matrix.csv"
-        
+
     else:
         file_name = 'bsd_matrix.csv'
-        
+
     with open(file_name, 'w') as csvfile:
-        
+
         csv_writer = csv.writer(csvfile)
-        
+
         #Write header line
         header = []
         header.append(',')
         for tree in tree_dict:
             header.append(tree_dict[tree])
-            
+
         csv_writer.writerow(header)
-        
-        
-        for tree_ref in tree_list: 
-            
+
+
+        for tree_ref in tree_list:
+
             #Append row tree header
             distances = []
             distances.append(tree_dict[tree_ref])
-            
+
             for i in range(len(tree_list)):
-                
-                if trees[i] is not tree_ref: 
-                    
+
+                if trees[i] is not tree_ref:
+
                     #Robinson-Foulds distances
                     if (dist_type == 'rf'):
                         dist_val = treecompare.weighted_robinson_foulds_distance\
                         (tree_ref,tree_list[i], is_bipartitions_updated=True)
-                    
+
                     #Boot-Split distances
                     else:
                         dist_val, eBSD, dBSD, sum_total, sum_mutual, sum_diff,\
                     mean_mutual, mean_diff = get_bsd(tree_ref, tree_list[i])
-                        
+
                     distances.append(dist_val)
-            
+
             csv_writer.writerow(distances)
-                
+
 
 
 if __name__ == '__main__':
@@ -234,7 +230,7 @@ if __name__ == '__main__':
         os.path.exists(str(sys.argv[2]))
         logging.debug("Path is valid")
         os.chdir(args.tree_path)
-        
+
     except:
         logging.error("Path is invalid!")
         path_invalid = True
@@ -269,11 +265,11 @@ if __name__ == '__main__':
     dd_trees = []
 
     for i in range(len(trees)):
-        tree = dd.Tree.get(data=trees[i], schema="newick", 
+        tree = dd.Tree.get(data=trees[i], schema="newick",
                            taxon_namespace=taxa)
         #tree.reconstruct_taxon_namespace
         tree.encode_bipartitions()
-        
+
         dd_trees.append(tree)
 
     #Link the files with their respective trees
@@ -282,5 +278,3 @@ if __name__ == '__main__':
     #Call matrix functions to create .csv files
     make_distance_matrix(tree_dict, dd_trees, 'rf')
     make_distance_matrix(tree_dict, dd_trees, 'bsd')
-    
-
