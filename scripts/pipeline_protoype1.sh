@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo Executing the Neighborhood Clustering Part of the pipeline::::Computing and clustering Neighborhood
 
 
