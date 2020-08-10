@@ -23,7 +23,9 @@ ete3: https://github.com/etetoolkit/ete
 DendroPy: https://github.com/jeetsukumaran/DendroPy
 
 <h2> Structure </h2> 
+
 ::
+
 ├── config
 ├── docs
 │   └── pipeline_visualization.png
