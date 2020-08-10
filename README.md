@@ -21,3 +21,23 @@ ete3: https://github.com/etetoolkit/ete
 
 DendroPy: https://github.com/jeetsukumaran/DendroPy
 
+<h2> Structure </h2> 
+...
+├── config
+├── docs
+│   └── pipeline_visualization.png
+├── README.md
+├── requirements.txt
+├── scripts
+│   └── phylo-script.sh
+├── setup.py
+├── test
+└── workflow
+    ├── envs
+    │   └── gene_neighborhoods_pipeline.yml
+    └── scripts
+        ├── make_ML_tree_vis.py
+        ├── __pycache__
+        │   └── make_ML_tree_vis.cpython-38.pyc
+        ├── tree_clustering.py
+        └── tree_distances.py
