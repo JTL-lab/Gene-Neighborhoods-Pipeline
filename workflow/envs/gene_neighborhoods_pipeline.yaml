@@ -1,5 +1,6 @@
 name: gene_neighborhoods_pipeline
 channels:
+  - conda
   - bioconda
   - defaults
 dependencies:

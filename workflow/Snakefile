@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+
+"""
+Working Snakemake Draft
+"""
+configfile: "config/config.yaml"
+
+"""
+Rule to run through entire pipeline: text file containing any number of NCBI
+links, .fna files, etc.
+"""
+
+rule all:
+    input:
+        "inputs.txt"
+
+#####              Phylogenetic analysis portion of pipeline               #####
+
+"""Create bootstrapped maximum-likelihood phylogenetic tree files (.treefiles)
+and ETE powered visualizations from homologous protein sequence files"""
+
+rule make_treefiles:
+
+    input:
+        "similar_neighbor_files/{homologous_sequences}.fasta"
+    output:
+        "treefiles/{newick_tree}.treefile"
+    shell:
+        """
+        echo 'Beginning phylo pipeline: converting sequences to trees...'
+
+        declare -a files
+        for file in ./*.fasta; do
+            echo 'Generating .treefile...'
+            output=$(python3 make_ML_tree_vis.py -h_seq $file)
+            files+=($output);
+        done
+
+        echo '.treefiles created:'
+        for filename in ${files[@]}; do echo $filename; done
+
+        if [ ! -d treefiles ]; then
+        mkdir treefiles;
+        chmod -R o+rw treefiles;
+        fi;
+
+        #Move .treefiles
+        echo 'Storing .treefiles in treefiles directory'
+        for file in ./*.treefile; do
+            mv $file treefiles;
+        done
+        """
+
+
+"""Create distance matrices containing weighted Robinson-Foulds and Boot-Split
+Distances from a directory of .treefiles"""
+
+rule make_distance_matrices:
+
+    input:
+        "treefiles/{newick_tree}.treefile"
+
+    output:
+        "treefiles/rf_matrix.csv"
+        "treefiles/bsd_matrix.csv"
+
+    shell:
+    """
+    echo 'Creating RF distance and BSD matrices from .treefiles...'
+    python3 tree_distances.py -tree_path treefiles
+    """
+
+
+"""Create UPGMA and Neighbor-Joining tree clusters from RF and BSD matrices"""
+
+rule make_tree_clusters:
+
+    input:
+        "treefiles/rf_matrix.csv"
+        "treefiles/bsd_matrix.csv"
+
+    output:
+        "treefiles/UPGMA_RF_tree.png"
+        "treefiles/UPGMA_BSD_tree.png"
+        "treefiles/NJ_RF_tree.png"
+        "treefiles/NJ_BSD_tree.png"
+
+    shell:
+        """
+        echo 'Clustering trees from distance matrices...'
+        python3 tree_clustering.py -matrix_path treefiles
+        """

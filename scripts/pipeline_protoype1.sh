@@ -3,9 +3,7 @@
 echo Executing the Neighborhood Clustering Part of the pipeline::::Computing and clustering Neighborhood
 
 
-
-
-###Extract the name of the input .fna filename 
+###Extract the name of the input .fna filename
 
 name=$(echo "$1" | cut -d'.' -f1)
 
@@ -42,7 +40,7 @@ python3 Neighborhood.py Fin_RGI Fin_gbk
 
 
 #### creating separate directory for .fasta files obtain from python script and running ALL-Vs-All Blast to get similarity results.
-mkdir blastque 
+mkdir blastque
 mv drugclassiden.fasta blastque/
 
 mkdir output
