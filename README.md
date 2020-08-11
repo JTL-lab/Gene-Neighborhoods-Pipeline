@@ -25,13 +25,16 @@ DendroPy: https://github.com/jeetsukumaran/DendroPy
 <h2> Structure </h2> 
 
 ```bash
+.
 ├── config
 ├── docs
 │   └── pipeline_visualization.png
 ├── README.md
 ├── requirements.txt
 ├── scripts
-│   └── phylo-script.sh
+│   ├── pipeline_prototype2.sh
+│   ├── pipeline_protoype1.sh
+│   └── pipeline.sh
 ├── setup.py
 ├── test
 └── workflow
