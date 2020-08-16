@@ -5,3 +5,4 @@ pandas>=1.0.5
 biopython>=1.77
 ete3>=3.1.1
 dendropy>=4.4.0
+python-Levenshtein>=0.12.0

@@ -11,6 +11,15 @@ import subprocess
 import argparse
 import hashlib
 import ete3 as et
+import Levenshtein
+
+"""Function to remove all contigs from a homologous sequence .FASTA files"""
+def remove_contig(sequence_identifier):
+
+    identifiers = sequence_identifier.split("_")
+    taxon = identifiers[0]
+
+    return taxon
 
 """
 Returns a list of all taxa that share the same sequence
@@ -29,6 +38,11 @@ def get_taxa(seq_dict, seq):
 
     return identical_taxa
 
+
+"""Calculates percent identity between two sequences"""
+def get_percent_identity(seq_1, seq_2):
+
+    return round((Levenshtein.ratio(seq_1,seq_2)*100), 2)
 
 """Replaces identical sequences with a surrogate to clean up
 phylogenetic tree"""
@@ -59,25 +73,29 @@ def check_surrogates(hom_seq_file):
     #Retain unique sequences
     seqs = list(set(seqs))
 
-    #Make new homologous sequence file
-    new_file = open(str(sys.argv[2])+"clean_seq_align.fasta", "w+")
-    i = 0
-    for seq in seqs:
+    #Make new sequence alignment file
+    new_file = open(str(sys.argv[2])+"_clean_seq_align.fasta", "w+")
 
-        taxa = get_taxa(hom_seqs, seq)
+    for j in range(len(seqs)):
+
+        taxa = get_taxa(hom_seqs, seqs[j])
+        clean_taxa = remove_contig(taxa[0])
 
         #Generate a surrogate for every identical sequence
         if (len(taxa) > 1):
+
+            #Calculate percent identity
+            PI = get_percent_identity(seqs[0],seqs[j])
+
             #Annotate surrogate with # of seqs it stands in for
-            surrogate = ">sequence_surrogate_"+str(len(taxa))+str(i)
+            surrogate = str(clean_taxa)+"_"+str(PI)+"_"+str(len(taxa))
             new_file.write(surrogate+"\n")
-            new_file.write(seq+"\n")
-            i+=1
+            new_file.write(seqs[j]+"\n")
 
         #Otherwise assume identical sequence
         else:
-            new_file.write(taxa[0]+"\n")
-            new_file.write(seq+"\n")
+            new_file.write(clean_taxa+"\n")
+            new_file.write(seqs[j]+"\n")
 
 
 def make_tree_vis(newick_tree, gene_name, file_name):
@@ -116,6 +134,7 @@ def make_tree_vis(newick_tree, gene_name, file_name):
     #Annotate root of tree with gene name
     gene_label = et.TextFace(gene_name, ftype="Helvetica", fsize=5,\
                              fgcolor='green')
+
     tree.add_face(gene_label, column=0, position = "branch-top")
 
     tree.render(file_name + "_tree.png", tree_style=nifty)
@@ -139,17 +158,17 @@ if __name__ == '__main__':
 
     args = vars(parser.parse_args())
 
-    #Create a new homologous sequence file with surrogates where appropriate
+    #Create a new alignment with surrogates used where appropriate
     check_surrogates(str(sys.argv[2]))
 
     #Call on MUSCLE alignment tool: MUSCLE binary file must be in directory
     subprocess.run(['/usr/bin/muscle3.8.31_i86linux64','-in',\
-                    str(sys.argv[2])+"clean_seq_align.fasta",'-out',
+                    str(sys.argv[2])+"_clean_seq_align.fasta",'-out',
                     str(sys.argv[2])+"_align.fasta"])
 
     #Call IQ-TREE: auto-detect best model and perform 1000 ultrafast BS
-    subprocess.run(['iqtree','-s',str(sys.argv[2])+'_align.fasta','-m','MFP',\
-    '-B','1000'])
+    subprocess.run(['iqtree','-s',str(sys.argv[2])+'_align.fasta',\
+    '-m','MFP','-B','1000'])
 
     #Create visualization from .treefile
     with open(str(sys.argv[2])+'_align.fasta.treefile','r') as file:
@@ -157,9 +176,10 @@ if __name__ == '__main__':
 
     try:
         make_tree_vis(newick_str, str(sys.argv[4]), str(sys.argv[2]))
+
     #If no label argument is given
     except:
         make_tree_vis(newick_str, "", str(sys.argv[2]))
 
     #Shell output: name of .treefile
-    print(str(sys.argv[2])+'_align.fasta.treefile')
+    print(str(sys.argv[2])+'clean_seq_align.fasta.treefile')
