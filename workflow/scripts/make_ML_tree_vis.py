@@ -13,6 +13,7 @@ import hashlib
 import ete3 as et
 import Levenshtein
 
+
 """Function to remove all contigs from a homologous sequence .FASTA files"""
 def remove_contig(sequence_identifier):
 
@@ -20,6 +21,7 @@ def remove_contig(sequence_identifier):
     taxon = identifiers[0]
 
     return taxon
+
 
 """
 Returns a list of all taxa that share the same sequence
@@ -44,9 +46,9 @@ def get_percent_identity(seq_1, seq_2):
 
     return round((Levenshtein.ratio(seq_1,seq_2)*100), 2)
 
+
 """Replaces identical sequences with a surrogate to clean up
 phylogenetic tree"""
-
 def check_surrogates(hom_seq_file):
 
     taxa = []
@@ -98,6 +100,7 @@ def check_surrogates(hom_seq_file):
             new_file.write(seqs[j]+"\n")
 
 
+"""Create ete powered visualizations of maximum-likelihood trees generated"""
 def make_tree_vis(newick_tree, gene_name, file_name):
 
     tree = et.Tree(newick_tree)
@@ -138,7 +141,6 @@ def make_tree_vis(newick_tree, gene_name, file_name):
     tree.add_face(gene_label, column=0, position = "branch-top")
 
     tree.render(file_name + "_tree.png", tree_style=nifty)
-
 
 
 if __name__ == '__main__':
