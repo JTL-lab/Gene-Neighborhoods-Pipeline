@@ -75,8 +75,11 @@ def check_surrogates(hom_seq_file):
     #Retain unique sequences
     seqs = list(set(seqs))
 
-    #Make new sequence alignment file
+    #Make new multiple sequence file
     new_file = open(str(sys.argv[2])+"_clean_seq_align.fasta", "w+")
+
+    #Generate file to store surrogate names and equivalent sequences
+    surrogate_file = open(str(sys.argv[2])+"_surrogates.txt", "w+")
 
     for j in range(len(seqs)):
 
@@ -91,8 +94,15 @@ def check_surrogates(hom_seq_file):
 
             #Annotate surrogate with # of seqs it stands in for
             surrogate = str(clean_taxa)+"_"+str(PI)+"_"+str(len(taxa))
+
+            #Write to new multiple sequence file
             new_file.write(surrogate+"\n")
             new_file.write(seqs[j]+"\n")
+
+            #Write to surrogates file
+            surrogate_file.write(str(clean_taxa)+"\n")
+            for i in range(taxa[1],len(taxa)):
+                surrogate_file.write(taxa[i]+"\n")
 
         #Otherwise assume identical sequence
         else:
@@ -170,7 +180,7 @@ if __name__ == '__main__':
 
     #Call IQ-TREE: auto-detect best model and perform 1000 ultrafast BS
     subprocess.run(['iqtree','-s',str(sys.argv[2])+'_align.fasta',\
-    '-m','MFP','-B','1000'])
+    '-m','MFP','-bb','1000'])
 
     #Create visualization from .treefile
     with open(str(sys.argv[2])+'_align.fasta.treefile','r') as file:
