@@ -34,7 +34,7 @@ def get_bipartitions(tree):
 
 '''Input: List of leaves from two respective trees
     Output: Returns shared list of nodes for trees with >= 4 nodes'''
-def getShared(firstTreeLeaves, secondTreeLeaves):
+def get_shared(firstTreeLeaves, secondTreeLeaves):
 
     in_common = list(set(firstTreeNodes)&set(secondTreeNodes))
 
@@ -44,7 +44,7 @@ def getShared(firstTreeLeaves, secondTreeLeaves):
     return in_common
 
 #Returns list of leaves not present in both trees
-def getDiff(firstTreeLeaves, secondTreeLeaves):
+def get_diff(firstTreeLeaves, secondTreeLeaves):
 
     return list(set(firstTreeLeaves)^set(secondTreeLeaves))
 
@@ -52,7 +52,7 @@ def getDiff(firstTreeLeaves, secondTreeLeaves):
 '''Input: List of bipartitions as Nodes and as strings for two trees
    Output: Returns list of nodes not present in both trees, \
    as Nodes and as Newick strings'''
-def getPrunedBips(bips1, bipStrings1, bips2, bipStrings2):
+def get_pruned_bips(bips1, bipStrings1, bips2, bipStrings2):
     bipsDiff = []
     bipsEqual = []
 
@@ -82,7 +82,7 @@ def getPrunedBips(bips1, bipStrings1, bips2, bipStrings2):
 
     return bipsDiff, bipsEqual
 
-def getSum(bipartitions):
+def get_sum(bipartitions):
 
     nums = []
 
@@ -105,7 +105,7 @@ def getSum(bipartitions):
 #def getSumDiffSplits(bootstrapTree):
 '''Input: Outputs from getSum()
    Output: Mean of bootstrap support values'''
-def getMeanBSD(sumBS, listBS):
+def get_mean_BSD(sumBS, listBS):
 
     if len(listBS) == 0:
         return 0
@@ -138,20 +138,20 @@ def get_bsd(tree_1, tree_2):
 
     #Obtain list of bipartitions shared by both trees and list of bipartitions
     #that differ between trees
-    bipsDiff, bipsEqual = getPrunedBips(bips_1,names_1,bips_2,names_2)
+    bipsDiff, bipsEqual = get_pruned_bips(bips_1,names_1,bips_2,names_2)
 
     #Obtain total sum(s) of BS supports for bipartitions for both trees
-    sum_1, toDiscard1 = getSum(bips_1)
-    sum_2, toDiscard2 = getSum(bips_2)
+    sum_1, toDiscard1 = get_sum(bips_1)
+    sum_2, toDiscard2 = get_sum(bips_2)
 
     #Tally the total BS support between both trees
     sum_total_BS = sum_1 + sum_2
 
-    sum_mutual_BS, list_mutual_BS = getSum(bipsEqual)
-    sum_diff_BS, list_diff_BS = getSum(bipsDiff)
+    sum_mutual_BS, list_mutual_BS = get_sum(bipsEqual)
+    sum_diff_BS, list_diff_BS = get_sum(bipsDiff)
 
-    mean_BS_mutual = getMeanBSD(sum_mutual_BS, list_mutual_BS)
-    mean_BS_diff = getMeanBSD(sum_diff_BS, list_diff_BS)
+    mean_BS_mutual = get_mean_BSD(sum_mutual_BS, list_mutual_BS)
+    mean_BS_diff = get_mean_BSD(sum_diff_BS, list_diff_BS)
 
     #Calculate BSD
     BSD_val, eBSD, dBSD = BSD(sum_total_BS, sum_mutual_BS, sum_diff_BS, \
