@@ -19,21 +19,13 @@ case ${option} in
             mkdir Multiple_instance
             mkdir Single_instance
 
-            mkdir contigend_visualizations
-            
-            
-
-
-            
+            mkdir contigend_visualizations  
+           
+          
             for i in *.png
             do
                mv $i contigend_visualizations/$i
             done
-
-
-
-           
-
 
 
             ### creating separate directory for .fasta files obtain from python script and running ALL-Vs-All Blast to get similarity results.
@@ -75,49 +67,46 @@ case ${option} in
 
 
             python git_upload_file_part2.py Fin_RGI Fin_gbk Single_instance/output_blast_single_instance Multiple_instance/output_blast_multiple_instance
-          
-            
-
-
+     
             ;; 
    2) read -p "Please enter the .fna assembly files path : " Fna_Path_RGI_Annotation
       
       
-      # cd ${Fna_Path_RGI_Annotation}     
+      cd ${Fna_Path_RGI_Annotation}     
 
-      # mkdir allgbksrequired
+      mkdir allgbksrequired
 
-      # mkdir allrgisrequired
+      mkdir allrgisrequired
  
 
-      # # for i in *.fna
-      # # do
-      # #    name=$(echo $i | cut -d'.' -f1) 
-      # #    echo $i
+      for i in *.fna
+      do
+         name=$(echo $i | cut -d'.' -f1) 
+         echo $i
 
-      # #    prokka $i --prefix $name --outdir ${name}_prokka  --locustag $name
+         prokka $i --prefix $name --outdir ${name}_prokka  --locustag $name
 
 
-      # #    rgi main --clean --input_sequence $i --alignment_tool BLAST  --num_threads 1 --output $name
+         rgi main --clean --input_sequence $i --alignment_tool BLAST  --num_threads 1 --output $name
 
-      # #    cp ${name}_prokka/${name}.gbk allgbksrequired
+         cp ${name}_prokka/${name}.gbk allgbksrequired
          
-      # # done
+      done
 
 
-      # for i in *.fna
-      # do
-      #    name=$(echo $i | cut -d'.' -f1) 
-      #    echo $i      
+      for i in *.fna
+      do
+         name=$(echo $i | cut -d'.' -f1) 
+         echo $i      
 
 
-      #    rgi main --clean --input_sequence $i --alignment_tool BLAST  --num_threads 1 --output $name
+         rgi main --clean --input_sequence $i --alignment_tool BLAST  --num_threads 1 --output $name
 
          
-      #    cp ${name}.txt allrgisrequired
-      # done
+         cp ${name}.txt allrgisrequired
+      done
 
-      # cd "$OLDPWD"
+      cd "$OLDPWD"
 
 
 
@@ -131,16 +120,11 @@ case ${option} in
       mkdir contigend_visualizations     
       
 
-
       
       for i in *.png
       do
          mv $i contigend_visualizations/$i
       done
-
-
-
-     
 
 
 
