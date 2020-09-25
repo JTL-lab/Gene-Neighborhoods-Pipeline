@@ -146,7 +146,7 @@ case ${option} in
              echo $name
              makeblastdb -dbtype prot -in $i
              blastp -query $i -db $i -outfmt  "6 qseqid sseqid pident length evalue bitscore qseq sseq " -out output_blast_single_instance/$name.txt
-             mv $i.txt output_blast/$name.txt
+             #mv $i.txt output_blast/$name.txt
             
       done
 
