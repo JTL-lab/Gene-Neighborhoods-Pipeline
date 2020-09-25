@@ -83,12 +83,7 @@ case ${option} in
       do
          name=$(echo $i | cut -d'.' -f1) 
          echo $i
-
          prokka $i --prefix $name --outdir ${name}_prokka  --locustag $name
-
-
-         rgi main --clean --input_sequence $i --alignment_tool BLAST  --num_threads 1 --output $name
-
          cp ${name}_prokka/${name}.gbk allgbksrequired
          
       done
@@ -98,11 +93,7 @@ case ${option} in
       do
          name=$(echo $i | cut -d'.' -f1) 
          echo $i      
-
-
-         rgi main --clean --input_sequence $i --alignment_tool BLAST  --num_threads 1 --output $name
-
-         
+         rgi main --clean --input_sequence $i --alignment_tool BLAST  --num_threads 1 --output $name         
          cp ${name}.txt allrgisrequired
       done
 
