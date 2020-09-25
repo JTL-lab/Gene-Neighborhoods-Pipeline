@@ -14,7 +14,7 @@ case ${option} in
      1)     read -p "Please enter the RGI file/files path : " RGI_Path
             read -p "Please enter the GBK file/files path : " GBK_Path
             
-            python git_upload_file_part1.py ${RGI_Path} ${GBK_Path}
+            python Neighborhood_Generator.py ${RGI_Path} ${GBK_Path}
 
             mkdir Multiple_instance
             mkdir Single_instance
@@ -66,7 +66,7 @@ case ${option} in
             mkdir Phylogeny_fasta_files
 
 
-            python git_upload_file_part2.py Fin_RGI Fin_gbk Single_instance/output_blast_single_instance Multiple_instance/output_blast_multiple_instance
+            python Cluster_Generator.py Fin_RGI Fin_gbk Single_instance/output_blast_single_instance Multiple_instance/output_blast_multiple_instance
      
             ;; 
    2) read -p "Please enter the .fna assembly files path : " Fna_Path_RGI_Annotation
@@ -101,7 +101,7 @@ case ${option} in
 
 
 
-      python git_upload_file_part1.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired 
+      python Neighborhood_Generator.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired 
 
 
 
@@ -146,7 +146,7 @@ case ${option} in
              echo $name
              makeblastdb -dbtype prot -in $i
              blastp -query $i -db $i -outfmt  "6 qseqid sseqid pident length evalue bitscore qseq sseq " -out output_blast_single_instance/$name.txt
-             #mv $i.txt output_blast/$name.txt
+             mv $i.txt output_blast/$name.txt
             
       done
 
@@ -157,7 +157,7 @@ case ${option} in
       mkdir Phylogeny_fasta_files
 
 
-      python git_upload_file_part2.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired Single_instance/output_blast_single_instance Multiple_instance/output_blast_multiple_instance
+      python Cluster_Generator.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired Single_instance/output_blast_single_instance Multiple_instance/output_blast_multiple_instance
     
 
     
