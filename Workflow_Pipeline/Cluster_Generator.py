@@ -2,8 +2,8 @@
 # coding: utf-8
 
 
-################Imports#################
 
+################Imports#################
 import numpy as np
 import pandas as pd
 import os
@@ -11,9 +11,11 @@ import glob
 #get_ipython().system('pip install biopython')
 from Bio import SeqIO
 import itertools
-#get_ipython().system('pip install reportlab')
-
+#et_ipython().system('pip install reportlab')
 import sys
+import os.path
+
+
 
 ### Specify the path of the RGI files and extract the .txt files from the folder
 #path = os.path.join(os.path.expanduser('~'),'Fin_RGI')
@@ -21,6 +23,7 @@ import sys
 path=sys.argv[1]
 #print (path)
 readfiles=glob.glob(os.path.join(path,"*.txt"))
+
 
 ####Read each rgi file(.txt) using pandas and store them in a dataframe####
 dataframelist=[]
@@ -33,11 +36,6 @@ for i in readfiles:
     i=pd.DataFrame(pd.read_csv(i,sep="\t"))
     dataframelist.append(i)
 
-# print(filenames)
-# print(len(filenames)) 
-
-
-# In[5]:
 
 
 datadict={}### dictionary of dataframes with keys as filenames ###
@@ -52,11 +50,14 @@ def parti(c):
   head,sep,tail=c.partition("_")
   return (head)
 
+
 def locus_generator(c,genome_name):
     a,b=c.split("_")
     tag=genome_name+"_"+b
     #print(tag)
     return tag
+
+
 
 for k,v in datadict.items():
     newcon=[]
@@ -66,6 +67,7 @@ for k,v in datadict.items():
         Locus_Temp.append(locus_generator(i,k))
     v['req_cont']=newcon    ###adding a new column "req_cont" into dataframe
     v['Locus_Tag']=Locus_Temp
+
 
 
 ####function to extract the required data from gbk files(entire genomes:) using biopython####    
@@ -126,10 +128,7 @@ def extract(infile):
 ####specifying the location/path names og gbk files and loading them####
 #filepath=os.path.join(os.path.expanduser('~'),'Fin_gbk')
 filepath=sys.argv[2]
-#gbkfiles=glob.glob(os.path.join(filepath,"*.gbk"))
 gbkfiles=glob.glob(os.path.join(filepath,"*.gbk"))
-
-
 
 gbk_names=[]
 for i in gbkfiles:
@@ -137,7 +136,7 @@ for i in gbkfiles:
     a=a.split(".")
     #print(a[0])
     gbk_names.append(a[0])
-#print(len(gbk_names)) 
+
 ## generating the keys various dictionaries required  ###
 
 gbknames=[]
@@ -150,7 +149,6 @@ for i in gbk_names:
     datasetslist.append(str(i))
     
 
-
 ### extract the data from gbk files and store in a dict of dataframes####
 gbkdict={}
 uniquedict={}
@@ -160,19 +158,16 @@ for i in range(len(gbk_names)):
     gbkdict[a],uniquedict[b]=extract(gbkfiles[i])
 
 
-
 #### manipulate the locus tag and protein sequence ###
 for j,i in gbkdict.items():
     i['Locus_Tag']=i['Locus_Tag'].apply(lambda i:str(i).replace("[","").replace("]","").replace("'",""))
     i['ProteinSequence']=i['ProteinSequence'].str.strip('[]')
 
 
-
 ####function to create groups based on contigs ###
 
 def make_groups(frame):
-  #print(frame)
-  
+    
   group=frame.groupby(frame['contig_name'])
   datasets = {}
   for groups, data in group:
@@ -185,6 +180,7 @@ for i in range(len(gbk_names)):
     for j,k in gbkdict.items():
         datasetdict[j]=make_groups(k)
 
+
 #### find the unique drugclasses of all the genomes and store it in uniquedrugdict####
 uniquedrugdict={}
 
@@ -196,6 +192,7 @@ for j,k in datadict.items():
     uniquedrugdict[j]=uniquedrugclasses
         
 
+
 ###### having the minimum has static value extract the genome that has minimum number of drug classes has key##
 min=100
 minarray=[]
@@ -206,7 +203,7 @@ for i,j in uniquedrugdict.items():
     if len(j)==min:
         minarray.append(i)
 min_drug_key=minarray[0]
-#print(min_drug_key)
+print(min_drug_key)
 
 
 listofdrugnames_modified=[]
@@ -230,13 +227,9 @@ def createeachdict_drug(drugindex):
     return temp_dict
    
 
-
-
 main_dictionary={}
 for i in range(len(listofdrugnames_modified)):
     main_dictionary[listofdrugnames_modified[i]]=createeachdict_drug(uniquedrugdict[min_drug_key][i])
-
-
 
 
 Dict_multigene_instances={}
@@ -244,65 +237,26 @@ for i,j in main_dictionary.items():
     Dict_multigene_instances[i]={k: v for k, v in j.items() if len(v)>1}
 
 
-
-
-
 Dict_singlegene_instances={}
 for i,j in main_dictionary.items():
-    #print(i)
-    temp_dict={}
-    for a,b in j.items():
-        if len(b)==1:
-            temp_dict[a]=b
-            
-    Dict_singlegene_instances[i]=temp_dict
+    Dict_singlegene_instances[i]={k: v for k, v in j.items() if len(v)==1}
+
+####function to delete empty keys in a dictionary######
+
+def delete_empty_dict_keys(dict_element):
+    emptykeyslist=[]
+    for i,j in dict_element.items():
+        if len(j)==0:
+            emptykeyslist.append(i)
+    for i in emptykeyslist:
+        del dict_element[i]
+    return dict_element
 
 
+Dict_multigene_instances=delete_empty_dict_keys(Dict_multigene_instances)
+Dict_singlegene_instances=delete_empty_dict_keys(Dict_singlegene_instances)
 
-emptykeyslist=[]
-for i,j in Dict_singlegene_instances.items():
-    if len(j)==0:
-        emptykeyslist.append(i)
-for i in emptykeyslist:
-    del Dict_singlegene_instances[i]
-
-
-emptykeyslist=[]
-for i,j in Dict_multigene_instances.items():
-    if len(j)==0:
-        emptykeyslist.append(i)
-for i in emptykeyslist:
-    del Dict_multigene_instances[i]
-
-
-
-unique_ARO_dict={}
-unique_ARO_names=[]
-for j,k in Dict_multigene_instances.items():
-    for n,m in k.items():   
-        m.reset_index(drop=True, inplace=True)
-        unique_ARO_names.append(m['Best_Hit_ARO'])
-        unique_ARO_dict[j]=m['Best_Hit_ARO']
-
-
-# In[26]:
-
-
-Required_drug_names=[]
-Required_drug_dictkeys=[]
-
-for i in range(len(unique_ARO_names)):
-    for j in unique_ARO_names[i]:
-        #print(j)
-        if j not in Required_drug_names:
-            Required_drug_names.append(j)
-
-
-for i in Required_drug_names:
-    Required_drug_dictkeys.append(i.split(" ")[0])
-
-
-# In[27]:
+#################################################################################################################
 
 
 def createARO_drug(drug):
@@ -316,13 +270,7 @@ def createARO_drug(drug):
                        
     return temp_dict
 
-
-# In[28]:
-
-
-Dict_each_drug_len_greater2={}
-for i in range(len(Required_drug_dictkeys)):
-    Dict_each_drug_len_greater2[Required_drug_dictkeys[i]]=createARO_drug(Required_drug_names[i])
+#################################################################################################################
 
 
 
@@ -330,7 +278,6 @@ for i in range(len(Required_drug_dictkeys)):
 def find_neighbor(rec,uname,data,number_of_genes,drug,genome):
   neighbor_genes=[]
   rec.reset_index(drop=True, inplace=True)
-
     
 
   for j in range(len(rec['Start'])):
@@ -342,10 +289,7 @@ def find_neighbor(rec,uname,data,number_of_genes,drug,genome):
         i=rec.loc[j].Start
         k=rec.loc[j].req_cont
         #print(i)
-        if number_of_genes==10:
-            g=10
-        elif number_of_genes==14:
-            g=14
+        g=number_of_genes
             
         if k in uname:
             newlist=data[k]
@@ -363,117 +307,39 @@ def find_neighbor(rec,uname,data,number_of_genes,drug,genome):
             #print(m)
             
             n=(newd.iloc[(newd['GeneStart']-i).abs().argsort()[:g]]).sort_values(by="GeneStart")
-            #print(n)chandana@chandana-HP-Pavilion-x360-Convertible-14-cd0xxx
+            #print(n)
             
             
-            recarray.append((rec['Start'][j],rec['Stop'][j],rec['Orientation'][j],rec['Contig'][j],rec['Predicted_Protein'][j],rec['Best_Hit_ARO'][j],"#C70039"))
+            recarray.append((rec['Start'][j],rec['Stop'][j],rec['Orientation'][j],rec['Locus_Tag'][j],rec['Predicted_Protein'][j],rec['Best_Hit_ARO'][j],"#c70039"))
             o=pd.DataFrame(recarray,columns=["GeneStart","GeneEnd","Strand","Locus_Tag","ProteinSequence","GeneName","Genecolor"])
-            
-            
-            e = pd.concat([m,o,n], ignore_index=True)
-            e.reset_index(drop=True, inplace=True)
-            neighbor_genes.append(e)
-            #print(e)      
                        
+            
+            e = pd.concat([m,o,n], ignore_index=True)               
+                
+            e.reset_index(drop=True, inplace=True)
+            
+           
+            neighbor_genes.append(e)               
             
         else:
             print(k)
             print(uname)
-            print("contig does not exist----"+"drugclass:"+drug)
+            print("contig does not ----"+"drugclass:"+drug)
             print(rec['Best_Hit_ARO'][j])
             
   if(len(m)!=0):
-    if(len(n)<g ):
-      
+    if(len(n)<g ):      
+       
         neighbor_genes=[]
     
     elif (len(m)<g):
-                
         neighbor_genes=[]          
 
   return neighbor_genes
 
+  ################################################################################################################################
 
-multipleinstance_neighboringdict_combined_range_10={}
-
-for i,j in Dict_each_drug_len_greater2.items():
-    Dict_neighboring_genes_range10={}
-    for k,l in j.items():
-        temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],10,i,k)
-        if len(temp)>0:
-            Dict_neighboring_genes_range10[k]=temp 
-    multipleinstance_neighboringdict_combined_range_10[i]=Dict_neighboring_genes_range10
-            
-
-
-emptykeyslist=[]
-for i,j in multipleinstance_neighboringdict_combined_range_10.items():
-    if len(j)==0:
-        emptykeyslist.append(i)
-for i in emptykeyslist:
-    del multipleinstance_neighboringdict_combined_range_10[i]
-
-multipleinstance_neighboringdict_combined_range_14={}
-
-for i,j in Dict_each_drug_len_greater2.items():
-    Dict_neighboring_genes_range14={}
-    for k,l in j.items():
-        temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],14,i,k)
-        if len(temp)>0:
-            Dict_neighboring_genes_range14[k]=temp
-    multipleinstance_neighboringdict_combined_range_14[i]=Dict_neighboring_genes_range14
-
-
-# In[36]:
-
-
-emptykeyslist=[]
-for i,j in multipleinstance_neighboringdict_combined_range_14.items():
-    if len(j)==0:
-        emptykeyslist.append(i)
-for i in emptykeyslist:
-    del multipleinstance_neighboringdict_combined_range_14[i]
-
-
-
-singleinstance_neighboringdict_combined_range10={}
-for i,j in Dict_singlegene_instances.items():
-    Dict_neighboring_genes_range10={}
-    for k,l in j.items():
-        temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],10,i,k)
-        if len(temp)>0:
-            Dict_neighboring_genes_range10[k]=temp
-    singleinstance_neighboringdict_combined_range10[i]=Dict_neighboring_genes_range10
-
-
-emptykeyslist=[]
-for i,j in singleinstance_neighboringdict_combined_range10.items():
-    if len(j)==0:
-        emptykeyslist.append(i)
-for i in emptykeyslist:
-    del singleinstance_neighboringdict_combined_range10[i]
-
-
-singleinstance_neighboringdict_combined_range14={}
-
-for i,j in Dict_singlegene_instances.items():
-    Dict_neighboring_genes_range14={}
-    for k,l in j.items():
-        temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],14,i,k)
-        if len(temp)>0:
-            Dict_neighboring_genes_range14[k]=temp
-    singleinstance_neighboringdict_combined_range14[i]=Dict_neighboring_genes_range14
-
-
-emptykeyslist=[]
-for i,j in singleinstance_neighboringdict_combined_range14.items():
-    if len(j)==0:
-        emptykeyslist.append(i)
-for i in emptykeyslist:
-    del singleinstance_neighboringdict_combined_range14[i]
-
-
-### function to get separate dicts of locus tags,protein sequences and gene names inorder to compare and write to a fasta file####
+  ### function to get separate dicts of locus tags,protein sequences and gene names inorder to compare and write to a fasta file####
 def getrequiredgenes(frame,number_of_genes,drug):
     temp_locus_array=[]
     temp_protein_array=[]
@@ -482,15 +348,6 @@ def getrequiredgenes(frame,number_of_genes,drug):
         temp_locus_array.append(list(i['Locus_Tag']))
         temp_protein_array.append(i['ProteinSequence'])
         temp_genename.append((i['GeneName']))
-    
-    
-    locus_to_protein_dict={}
-    for i in frame:
-        for j in range(len(i)):
-            
-            locus_to_protein_dict[i['Locus_Tag'][j].strip()]=i['ProteinSequence'][j]
-        
-        
  
     a=temp_locus_array
     a=list(itertools.chain.from_iterable(a))
@@ -500,10 +357,14 @@ def getrequiredgenes(frame,number_of_genes,drug):
    
     c=temp_genename
     c=list(itertools.chain.from_iterable(c))
-    
-    #print(a,b,c)
-    
-    
+
+
+    locus_to_protein_dict={}
+    for i in frame:
+        for j in range(len(i)):
+            
+            locus_to_protein_dict[i['Locus_Tag'][j].strip()]=i['ProteinSequence'][j]
+        
     if number_of_genes==10:
         if len(frame)>1:
             return(a[:10]+a[-10:], b[:10]+b[-10:],c[:10]+c[-10:])## for more than one card genes in a genomes
@@ -511,96 +372,206 @@ def getrequiredgenes(frame,number_of_genes,drug):
             return a, b,c
         #return(a[:5]+a[-5:], b[:5]+b[-5:],c[:5]+c[-5:])## for more than one card genes in a genomes
     if number_of_genes==14:
+        
         if len(frame)>1:
-            return(a[:14]+a[-14:], b[:14]+b[-14:],c[:14]+c[-14:])## for more than one card genes in a genomes
+            return(a[:14]+a[-14:], b[:14]+b[-14:],c[:14]+c[-14:],locus_to_protein_dict)## for more than one card genes in a genomes
         else:
             return a,b,c,locus_to_protein_dict
 
 
-# In[42]:
+    ###################################################################################################################
 
 
-Drug_multiple_instance_range_10_locus_dict10={}
-Drug_multiple_instance_range_10_protein_dict10={}
-Drug_multiple_instance_range_10_genename_dict10={}
-
-for i,j in multipleinstance_neighboringdict_combined_range_10.items():
-   
-    locustags_dict_10={}
-    protein_dict_10={}
-    genename_dict_10={}
-    for k,l in j.items():
-        locustags_dict_10[k],protein_dict_10[k],genename_dict_10[k]=getrequiredgenes(j[k],10,i)
-    #print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
-    Drug_multiple_instance_range_10_locus_dict10[i]=locustags_dict_10
-    Drug_multiple_instance_range_10_protein_dict10[i]=protein_dict_10
-    Drug_multiple_instance_range_10_genename_dict10[i]=genename_dict_10
-
-
-
-Drug_multiple_instance_range_14_locus_dict14={}
-Drug_multiple_instance_range_14_protein_dict14={}
-Drug_multiple_instance_range_14_genename_dict14={}
-Locus_to_Protein_MultipleInst_Dict={}
-
-
-for i,j in multipleinstance_neighboringdict_combined_range_14.items():
-    locustags_dict_14={}
-    protein_dict_14={}
-    genename_dict_14={}
-    locus_protein={}
+for i,j in Dict_singlegene_instances.items():
+    if len(j)>1:
+        cluster_key=True
+  
+if cluster_key==True:
     
-   
-    for k,l in j.items():
+    unique_ARO_dict={}
+    unique_ARO_names=[]
+    for j,k in Dict_multigene_instances.items():
+        for n,m in k.items():   
+            m.reset_index(drop=True, inplace=True)
+            unique_ARO_names.append(m['Best_Hit_ARO'])
+            unique_ARO_dict[j]=m['Best_Hit_ARO']
+            
+    ###################################################################################################
+             
+            
+    Required_drug_names=[]
+    Required_drug_dictkeys=[]
+
+    for i in range(len(unique_ARO_names)):
+        for j in unique_ARO_names[i]:
+            #print(j)
+            if j not in Required_drug_names:
+                Required_drug_names.append(j)
+    ###################################################################################################
+
+
+    for i in Required_drug_names:
+        Required_drug_dictkeys.append(i.split(" ")[0])
+    
+    ###################################################################################################
+    
+    
+    Dict_each_drug_len_greater2={}
+    for i in range(len(Required_drug_dictkeys)):
+        Dict_each_drug_len_greater2[Required_drug_dictkeys[i]]=createARO_drug(Required_drug_names[i])
         
-        locustags_dict_14[k],protein_dict_14[k],genename_dict_14[k],locus_protein[k]=getrequiredgenes(j[k],14,i)
-    ##print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
-    Drug_multiple_instance_range_14_locus_dict14[i]=locustags_dict_14
-    Drug_multiple_instance_range_14_protein_dict14[i]=protein_dict_14
-    Drug_multiple_instance_range_14_genename_dict14[i]=genename_dict_14
-    Locus_to_Protein_MultipleInst_Dict[i]=locus_protein
+    ###################################################################################################
+        
+    multipleinstance_neighboringdict_combined_range_10={}
+    for i,j in Dict_each_drug_len_greater2.items():
+        Dict_neighboring_genes_range10={}
+        for k,l in j.items():
+            temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],10,i,k)
+            if len(temp)>0:
+                Dict_neighboring_genes_range10[k]=temp 
+        multipleinstance_neighboringdict_combined_range_10[i]=Dict_neighboring_genes_range10
+
+    ###------------------------------------------------------------------------------------####       
+             
+    multipleinstance_neighboringdict_combined_range_10=delete_empty_dict_keys(multipleinstance_neighboringdict_combined_range_10)
     
+    
+    ###################################################################################################
+                
+                
+    multipleinstance_neighboringdict_combined_range_14={}
+    for i,j in Dict_each_drug_len_greater2.items():
+        Dict_neighboring_genes_range14={}
+        for k,l in j.items():
+            temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],14,i,k)
+            if len(temp)>0:
+                Dict_neighboring_genes_range14[k]=temp
+        multipleinstance_neighboringdict_combined_range_14[i]=Dict_neighboring_genes_range14
+        
+    ###------------------------------------------------------------------------------------####       
+    
+    
+             
+    multipleinstance_neighboringdict_combined_range_14=delete_empty_dict_keys(multipleinstance_neighboringdict_combined_range_14)
+            
+          
+    ###################################################################################################        
+                
+        
+    singleinstance_neighboringdict_combined_range10={}
+    for i,j in Dict_singlegene_instances.items():
+        Dict_neighboring_genes_range10={}
+        for k,l in j.items():
+            temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],10,i,k)
+            if len(temp)>0:
+                Dict_neighboring_genes_range10[k]=temp
+        singleinstance_neighboringdict_combined_range10[i]=Dict_neighboring_genes_range10
+        
+         
+    ###------------------------------------------------------------------------------------####       
+    
+    singleinstance_neighboringdict_combined_range10=delete_empty_dict_keys(singleinstance_neighboringdict_combined_range10)
+                
+    ###################################################################################################
+    
+    
+    singleinstance_neighboringdict_combined_range14={}
+    for i,j in Dict_singlegene_instances.items():
+        Dict_neighboring_genes_range14={}
+        for k,l in j.items():
+            temp=find_neighbor(j[k],uniquedict[k],datasetdict[k],14,i,k)
+            if len(temp)>0:
+                Dict_neighboring_genes_range14[k]=temp
+        singleinstance_neighboringdict_combined_range14[i]=Dict_neighboring_genes_range14
+        
+        
+    ###------------------------------------------------------------------------------------####   
+    
+    singleinstance_neighboringdict_combined_range14=delete_empty_dict_keys(singleinstance_neighboringdict_combined_range14)
+        
+    ###################################################################################################
+    
+    Drug_multiple_instance_range_10_locus_dict10={}
+    Drug_multiple_instance_range_10_protein_dict10={}
+    Drug_multiple_instance_range_10_genename_dict10={}
+
+    for i,j in multipleinstance_neighboringdict_combined_range_10.items():
+        locustags_dict_10={}
+        protein_dict_10={}
+        genename_dict_10={}
+        for k,l in j.items():
+            locustags_dict_10[k],protein_dict_10[k],genename_dict_10[k]=getrequiredgenes(j[k],10,i)
+        #print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
+        Drug_multiple_instance_range_10_locus_dict10[i]=locustags_dict_10
+        Drug_multiple_instance_range_10_protein_dict10[i]=protein_dict_10
+        Drug_multiple_instance_range_10_genename_dict10[i]=genename_dict_10
+        
+    ###################################################################################################
+    
+    Drug_multiple_instance_range_14_locus_dict14={}
+    Drug_multiple_instance_range_14_protein_dict14={}
+    Drug_multiple_instance_range_14_genename_dict14={}
+    Locus_to_Protein_MultipleInst_Dict={}
 
 
-Drug_singleinstance_range_10_locus_dict10={}
-Drug_singleinstance_range_10_protein_dict10={}
-Drug_singleinstance_range_10_genename_dict10={}
+    for i,j in multipleinstance_neighboringdict_combined_range_14.items():
+        locustags_dict_14={}
+        protein_dict_14={}
+        genename_dict_14={}
+        locus_protein={}
+        
+       
+        for k,l in j.items():            
+            locustags_dict_14[k],protein_dict_14[k],genename_dict_14[k],locus_protein[k]=getrequiredgenes(j[k],14,i)
+        ##print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
+        Drug_multiple_instance_range_14_locus_dict14[i]=locustags_dict_14
+        Drug_multiple_instance_range_14_protein_dict14[i]=protein_dict_14
+        Drug_multiple_instance_range_14_genename_dict14[i]=genename_dict_14
+        Locus_to_Protein_MultipleInst_Dict[i]=locus_protein
+    
+        
+    ###################################################################################################
+    
+    
+    Drug_singleinstance_range_10_locus_dict10={}
+    Drug_singleinstance_range_10_protein_dict10={}
+    Drug_singleinstance_range_10_genename_dict10={}
 
-for i,j in singleinstance_neighboringdict_combined_range10.items():
-    locustags_dict_10={}
-    protein_dict_10={}
-    genename_dict_10={}
-    for k,l in j.items():
-        locustags_dict_10[k],protein_dict_10[k],genename_dict_10[k]=getrequiredgenes(j[k],10,i)
-    #print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
-    Drug_singleinstance_range_10_locus_dict10[i]=locustags_dict_10
-    Drug_singleinstance_range_10_protein_dict10[i]=protein_dict_10
-    Drug_singleinstance_range_10_genename_dict10[i]=genename_dict_10
+    for i,j in singleinstance_neighboringdict_combined_range10.items():
+        locustags_dict_10={}
+        protein_dict_10={}
+        genename_dict_10={}
+        for k,l in j.items():
+            locustags_dict_10[k],protein_dict_10[k],genename_dict_10[k]=getrequiredgenes(j[k],10,i)
+        #print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
+        Drug_singleinstance_range_10_locus_dict10[i]=locustags_dict_10
+        Drug_singleinstance_range_10_protein_dict10[i]=protein_dict_10
+        Drug_singleinstance_range_10_genename_dict10[i]=genename_dict_10
+        
+    ###################################################################################################
+    Drug_singleinstance_range_14_locus_dict14={}
+    Drug_singleinstance_range_14_protein_dict14={}
+    Drug_singleinstance_range_14_genename_dict14={}
+    Locus_to_Protein_SingleInst_Dict={}
 
+    for i,j in singleinstance_neighboringdict_combined_range14.items():
+        locustags_dict_14={}
+        protein_dict_14={}
+        genename_dict_14={}
+        locus_protein={}
+        for k,l in j.items():
+            locustags_dict_14[k],protein_dict_14[k],genename_dict_14[k],locus_protein[k]=getrequiredgenes(j[k],14,i)
+        #print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
+        Drug_singleinstance_range_14_locus_dict14[i]=locustags_dict_14
+        Drug_singleinstance_range_14_protein_dict14[i]=protein_dict_14
+        Drug_singleinstance_range_14_genename_dict14[i]=genename_dict_14
+        Locus_to_Protein_SingleInst_Dict[i]=locus_protein
+        
+         
+    ###################################################################################################
+    
+   
 
-Drug_singleinstance_range_14_locus_dict14={}
-Drug_singleinstance_range_14_protein_dict14={}
-Drug_singleinstance_range_14_genename_dict14={}
-Locus_to_Protein_SingleInst_Dict={}
-
-for i,j in singleinstance_neighboringdict_combined_range14.items():
-    locustags_dict_14={}
-    protein_dict_14={}
-    genename_dict_14={}
-    locus_protein={}
-    for k,l in j.items():
-        locustags_dict_14[k],protein_dict_14[k],genename_dict_14[k],locus_protein[k]=getrequiredgenes(j[k],14,i)
-    #print(len(locustags_dict_10),len(protein_dict_10),len(genename_dict_10))  
-    Drug_singleinstance_range_14_locus_dict14[i]=locustags_dict_14
-    Drug_singleinstance_range_14_protein_dict14[i]=protein_dict_14
-    Drug_singleinstance_range_14_genename_dict14[i]=genename_dict_14
-    Locus_to_Protein_SingleInst_Dict[i]=locus_protein
-
-
-
-# get_ipython().system('pip install matplotlib')
-# get_ipython().system('pip install scipy')
-# get_ipython().system('pip install plotly')
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -614,12 +585,8 @@ import scipy.spatial as scs
 from scipy.spatial.distance import pdist,squareform
 
 
-
 #### path to read the result text file into a dataframe
-#filepath="/home/chandana/Desktop/uniquedrugARO/singleinst/output_single_instance/"
 filepath_single=sys.argv[3]
-#gbkfiles=glob.glob(os.path.join(filepath,"*.gbk"))
-#print(filepath_single)
 single_instance_blastdataframelist=[]
 single_instance_blastfilename=[]
 
@@ -627,7 +594,6 @@ readfiles=glob.glob(os.path.join(filepath_single,"*.txt"))
 for i in readfiles:
     a=os.path.basename(i)
     a=a.split(".")
-    #print(a[0])
     single_instance_blastfilename.append(a[0])
     i=pd.read_csv(i,index_col = False,sep="\t", names=['query_id','sub_id','PI','len','Evalue','bitscore','qseq','sseq'])
     #i=pd.read_csv(i,index_col = False,sep="\t")
@@ -638,13 +604,14 @@ for i in range(len(single_instance_blastfilename)):
     a=single_instance_blastdataframelist[i]
     b=single_instance_blastfilename[i]
     single_instance_blastdatadict[b]=pd.DataFrame(a)
+    
+
+
+# In[50]:
 
 
 ### path to read the result text file into a dataframe
 filepath_multiple=sys.argv[4]
-#filepath="/home/chandana/Desktop/uniquedrugARO/output/"
-#gbkfiles=glob.glob(os.path.join(filepath,"*.gbk"))
-#print(filepath_multiple)
 Multiple_instance_blastdataframelist=[]
 Multiple_instance_blastfilename=[]
 
@@ -652,7 +619,6 @@ readfiles=glob.glob(os.path.join(filepath_multiple,"*.txt"))
 for i in readfiles:
     a=os.path.basename(i)
     a=a.split(".")
-    #print(a[0])
     Multiple_instance_blastfilename.append(a[0])
     i=pd.read_csv(i,index_col = False,sep="\t", names=['query_id','sub_id','PI','len','Evalue','bitscore','qseq','sseq'])
     #i=pd.read_csv(i,index_col = False,sep="\t")
@@ -663,7 +629,6 @@ for i in range(len(Multiple_instance_blastfilename)):
     a=Multiple_instance_blastdataframelist[i]
     b=Multiple_instance_blastfilename[i]
     Multiple_instance_blastdatadict[b]=pd.DataFrame(a)
-    
 
 
 single_instance_drugclass_genomedict={}
@@ -672,19 +637,18 @@ for k,l in Drug_singleinstance_range_10_locus_dict10.items():
     for m in l.keys():
                 #print(m)
         genomesdict[m]=single_instance_blastdatadict[k][single_instance_blastdatadict[k]['query_id'].str.contains(m)]
-    #print(genomesdict)
     
     single_instance_drugclass_genomedict[k]=genomesdict
 
 
+
 multiple_instance_drugclass_genomedict={}
-for k,l in Drug_multiple_instance_range_14_locus_dict14.items():
+for k,l in Drug_multiple_instance_range_10_locus_dict10.items():
     genomesdict={}
     for m in l.keys():
-                #print(m)
+                
         genomesdict[m]=Multiple_instance_blastdatadict[k][Multiple_instance_blastdatadict[k]['query_id'].str.contains(m)]
-    #print(genomesdict)
-    
+        
     multiple_instance_drugclass_genomedict[k]=genomesdict
 
 
@@ -693,7 +657,6 @@ for k,l in Drug_multiple_instance_range_14_locus_dict14.items():
 def removefilter(frame,sets):
   temp=[]
   frame.reset_index(drop=True, inplace=True)
-  #print(frame)
   for j in sets:
     for i in range(len(frame)):
         a=frame['query_id'][i]
@@ -703,11 +666,7 @@ def removefilter(frame,sets):
         if (a==b) and c>65:
             temp.append((frame['query_id'][i],frame['sub_id'][i],frame['PI'][i],frame['bitscore'][i]))
   newframe=pd.DataFrame(temp,columns=["query_id","sub_id","PI","bitscore"])
-  #print(newframe)
   return newframe
-
-
-# In[56]:
 
 
 drugclass_single_tempdict={}
@@ -718,15 +677,13 @@ for i,j in single_instance_drugclass_genomedict.items():
     drugclass_single_tempdict[i]=tempdict
 
 
-
-
 drugclass_multiple_tempdict={}
 for i,j in multiple_instance_drugclass_genomedict.items():
-    #print(i)
     tempdict={}
     for m in j.keys():
             tempdict[m]=removefilter(j[m],Drug_multiple_instance_range_10_locus_dict10[i][m])
     drugclass_multiple_tempdict[i]=tempdict
+
 
 
 drugclass_single_answerdict={}
@@ -734,26 +691,19 @@ for l,k in drugclass_single_tempdict.items():
     answer=[]
     for i in k.keys():
       a=i
-      #print(k[l])
-      #print(k[i])
       temp=k[i]
-      #print(k.items())
       
       for j in k.keys():
-         #print(l)
          b=j
          #print(a,b)
          tempwithother=temp[temp['sub_id'].str.contains(b)]
          tempwithother.reset_index(drop=True, inplace=True)
          
-         #print((tempwithother))###
          avg=0
          for m in range(len(tempwithother)):
              avg=avg+tempwithother['bitscore'][m]
              answer.append([a,b,avg])
     drugclass_single_answerdict[l]=answer
-
-
 
 
 
@@ -768,8 +718,13 @@ for i,j in drugclass_single_answerdict.items():
     single_instance_matrixframe[i]=sim_mat
     
 
+emptykeyarray=[]
+for i,j in single_instance_matrixframe.items():
+    if len(j)==1:
+        emptykeyarray.append(i)
+for i in emptykeyarray:
+    del single_instance_matrixframe[i]
 
-# In[61]:
 
 import os.path
 
@@ -790,32 +745,24 @@ for i,j in single_instance_matrixframe.items():
    figure.write_image(savename)
 
 
-# In[62]:
-
 
 drugclass_multiple_answerdict={}
 for l,k in drugclass_multiple_tempdict.items():
     answer=[]
     for i in k.keys():
       a=i
-      #print(k[l])
-      #print(k[i])
-      temp=k[i]
-      #print(k.items())
-      
+      temp=k[i]      
       for j in k.keys():
-         
          b=j
-         #print(a,b)
          tempwithother=temp[temp['sub_id'].str.contains(b)]
          tempwithother.reset_index(drop=True, inplace=True)
          
-         #print((tempwithother))###
          avg=0
          for m in range(len(tempwithother)):
              avg=avg+tempwithother['bitscore'][m]
              answer.append([a,b,avg])
     drugclass_multiple_answerdict[l]=answer
+
 
 
 
@@ -828,16 +775,15 @@ for i,j in drugclass_multiple_answerdict.items():
     sim_mat=(pd.crosstab(index=finalresult.iloc[:,0], columns=finalresult.iloc[:,1], 
                   values=finalresult.iloc[:,2], aggfunc='sum',colnames=None))
     multiple_instance_matrixframe[i]=sim_mat
-    
 
 
+#multiple_instance_matrixframe=delete_empty_dict_keys(multiple_instance_matrixframe)
 emptykeyarray=[]
 for i,j in multiple_instance_matrixframe.items():
     if len(j)==1:
         emptykeyarray.append(i)
 for i in emptykeyarray:
     del multiple_instance_matrixframe[i]
-
 
 
 import os.path
@@ -867,13 +813,14 @@ for i,j in drugclass_single_tempdict.items():
     uniquekeysforeachdict[i]=unique_query_id
 
 
+
 save_path="Phylogeny_fasta_files/"
 for i,j in uniquekeysforeachdict.items():
+    print()
     n=os.path.join(save_path,i)
     os.mkdir(n)
     count=0
-    for a in j:
-        
+    for a in j:       
         
         name=i+"_"+str(count+1)+".fasta"
         savename=os.path.join(n,name)
@@ -895,16 +842,14 @@ for i,j in uniquekeysforeachdict.items():
                 val=0
             
             checker.append(val)
-        #print(checker)
+        
         k["checker"]=checker
         
         k.drop(k[k.checker == 0].index, inplace=True)
         k.reset_index(drop=True, inplace=True)
        
         
-        count+=1       
-       
-
+        count+=1
         filef=open(savename,"w")
         for l in range(len(k)):
             genome=k["sub_id"][l].split("_")[0]
@@ -913,5 +858,7 @@ for i,j in uniquekeysforeachdict.items():
             filef.write("\n")
             filef.writelines(Locus_to_Protein_SingleInst_Dict[i][genome][k["sub_id"][l]])
             filef.write("\n")
-        filef.close()  
-
+        filef.close()
+        
+       
+        
