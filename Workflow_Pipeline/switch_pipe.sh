@@ -161,13 +161,13 @@ case ${option} in
         mkdir contigend_visualizations
 
 
-        python git_upload_file_part1.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired
+        python Neighborhood_Generator.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired
 
 
         cd Multiple_instance
         mkdir output_blast_multiple_instance
         for i in *.fasta
-        do    
+        do     
         
                name=$(echo $i | cut -d'.' -f1)
                echo $name
@@ -207,7 +207,7 @@ case ${option} in
 
 
         
-        python git_upload_file_part2.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired Single_instance/output_blast_single_instance Multiple_instance/output_blast_multiple_instance
+        python Cluster_Generator.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired Single_instance/output_blast_single_instance Multiple_instance/output_blast_multiple_instance
        
 
       fi
@@ -215,7 +215,7 @@ case ${option} in
       if [ $count_of_files -eq 1 ]
       then 
         mkdir contigend_visualizations_single_genome     
-        python git_upload_file_part1.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired
+        python Neighborhood_Generator.py ${Fna_Path_RGI_Annotation}/allrgisrequired ${Fna_Path_RGI_Annotation}/allgbksrequired
                             
     
         cd contigend_visualizations_single_genome
