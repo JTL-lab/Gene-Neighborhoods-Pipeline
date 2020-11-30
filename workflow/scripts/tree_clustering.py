@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Script to generate two distance matrices from a directory of .treefiles rendered
 with IQ-TREE respectively using:
@@ -17,7 +16,9 @@ from dendropy.utility.textprocessing import StringIO
 from make_ML_tree_vis import make_tree_vis
 
 def clean_string(dd_cluster):
-
+    """
+    Tidy up taxon strings
+    """
     clust = dd_cluster.split(" ")
     clust_s = clust[1].replace("'", "")
     clust_str = clust_s.replace("\n","")
@@ -25,7 +26,9 @@ def clean_string(dd_cluster):
     return clust[1]
 
 def get_cluster_vis(RF_matrix, BSD_matrix):
-
+    """
+    Create UPGMA and NJ trees based on RF and BSD distances respectively
+    """
     pdm_rf = dd.PhylogeneticDistanceMatrix.from_csv(src=StringIO(RF_matrix),\
                                                    delimiter=",")
 
@@ -51,8 +54,6 @@ def get_cluster_vis(RF_matrix, BSD_matrix):
     upgma_bsd_tree = make_tree_vis(upgma_bsd_str, "UPGMA BSD", "UPGMA_BSD")
     nj_rf_tree = make_tree_vis(nj_rf_str, "NJ RF","NJ_RF")
     nj_bsd_tree = make_tree_vis(nj_bsd_str, "NJ BSD", "NJ_BSD")
-
-
 
 if __name__ == '__main__':
 

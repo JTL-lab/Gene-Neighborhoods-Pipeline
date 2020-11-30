@@ -1,8 +1,18 @@
 #!/usr/bin/env python
-
 """
 Script to generate distance matrixes (Robinson - Foulds and Boot Split \
-Distance) for all bootstrapped trees contained within a directory of .treefiles
+Distance) for all bootstrapped trees contained within a directory of .treefiles.
+
+The Boot-Split Distance (BSD) algorithm was implemented based on the Boot-Split
+Distance Method introduced in Puigbò, Wolf and Koonin's paper "Genome-Wide
+Comparative Analysis of Phylogenetic Trees: The Prokaryotic Forest of Life".
+
+Full citation:
+Puigbò, P., Wolf, Y. I., & Koonin, E. V. (2012).
+Genome-Wide Comparative Analysis of Phylogenetic Trees:
+The Prokaryotic Forest of Life.
+Methods in Molecular Biology Evolutionary Genomics, 53-79.
+doi:10.1007/978-1-61779-585-5_3
 """
 
 import os
@@ -13,9 +23,10 @@ import csv
 import dendropy as dd
 from dendropy.calculate import treecompare
 
-#Function to obtain bipartitions as objects and as Newick strings
 def get_bipartitions(tree):
-
+    """
+    Function to obtain bipartitions as objects and as Newick strings
+    """
     bipartitions = []
     bip_strings = []
 
@@ -29,13 +40,12 @@ def get_bipartitions(tree):
 
     return bipartitions, bip_strings
 
-#Get the common set of leaves between the two trees,
-#i.e the shared leaf-set of species -> must have at least 4 species in common!
-
-'''Input: List of leaves from two respective trees
-    Output: Returns shared list of nodes for trees with >= 4 nodes'''
 def get_shared(firstTreeLeaves, secondTreeLeaves):
-
+    """
+    Function to determine the common set of leaves between two inputted trees,
+    i.e the shared leaf-set of species. The trees must have at least 4 species
+    in common for the BSD method to function.
+    """
     in_common = list(set(firstTreeNodes)&set(secondTreeNodes))
 
     assert (len(in_common) < 4), "Trees have less than 4 species in common: \
@@ -43,16 +53,19 @@ def get_shared(firstTreeLeaves, secondTreeLeaves):
 
     return in_common
 
-#Returns list of leaves not present in both trees
 def get_diff(firstTreeLeaves, secondTreeLeaves):
+    """
+    Returns list of leaves not present in both trees
+    """
 
     return list(set(firstTreeLeaves)^set(secondTreeLeaves))
 
-#Step 3: Prune all splits to the common leaf-set of species
-'''Input: List of bipartitions as Nodes and as strings for two trees
-   Output: Returns list of nodes not present in both trees, \
-   as Nodes and as Newick strings'''
 def get_pruned_bips(bips1, bipStrings1, bips2, bipStrings2):
+    """
+    Prunes all splits to the common leaf-set of species given a list of the tree
+    bipartitions and Newick-string representations. Outputs a list of nodes not
+    present in both trees.
+    """
     bipsDiff = []
     bipsEqual = []
 
@@ -83,7 +96,9 @@ def get_pruned_bips(bips1, bipStrings1, bips2, bipStrings2):
     return bipsDiff, bipsEqual
 
 def get_sum(bipartitions):
-
+    """
+    Calculates the sum of all boot-split values for a given list of bipartitions
+    """
     nums = []
 
     for i in range(len(bipartitions)):
@@ -91,7 +106,7 @@ def get_sum(bipartitions):
             num = bipartitions[i].label
             nums.append(num)
 
-    #cast to int
+    #Cast values to int
     BS_vals = list(map(int, nums))
     for i in range(len(BS_vals)):
         BS_vals[i] = float(BS_vals[i]/100)
@@ -101,11 +116,10 @@ def get_sum(bipartitions):
 
     return sum_BS, nums
 
-
-#def getSumDiffSplits(bootstrapTree):
-'''Input: Outputs from getSum()
-   Output: Mean of bootstrap support values'''
 def get_mean_BSD(sumBS, listBS):
+    """
+    Calculate mean of bootstrap support values
+    """
 
     if len(listBS) == 0:
         return 0
@@ -115,23 +129,32 @@ def get_mean_BSD(sumBS, listBS):
 
 
 def eBSD(sum_total_BS, sum_mutual_split_BS, mean_BS_mutual):
-
+    """
+    Applies eBSD equation
+    """
     return (1 - ((sum_mutual_split_BS/sum_total_BS)*mean_BS_mutual))
 
 def dBSD(sum_total_BS, sum_diff_split_BS, mean_BS_diff):
-
+    """
+    Applies dBSD equation
+    """
     return ((sum_diff_split_BS/sum_total_BS)*mean_BS_diff)
 
 def BSD(sum_total_BS, sum_mutual_split_BS, sum_diff_split_BS, \
 mean_BS_mutual, mean_BS_diff):
+    """
+    Applies BSD equation using previously calculated eBSD and dBSD values
+    """
     equalBSD = eBSD(sum_total_BS, sum_mutual_split_BS, mean_BS_mutual)
     diffBSD = dBSD(sum_total_BS, sum_diff_split_BS, mean_BS_diff)
     bootSplitDist = ((equalBSD+diffBSD)/2)
-
     return bootSplitDist, equalBSD, diffBSD
 
-def get_bsd(tree_1, tree_2):
 
+def get_bsd(tree_1, tree_2):
+    """
+    Driver function for calculating the Boot-Split Distance value
+    """
     #Get bipartition and string reps of bipartitions for both trees
     bips_1, names_1 = get_bipartitions(tree_1)
     bips_2, names_2 = get_bipartitions(tree_2)
@@ -160,8 +183,10 @@ def get_bsd(tree_1, tree_2):
     return BSD_val, eBSD, dBSD, sum_total_BS, sum_mutual_BS, sum_diff_BS, \
     mean_BS_mutual, mean_BS_diff
 
-
 def make_distance_matrix(tree_dict, tree_list, dist_type):
+    """
+    Generate RF and BSD matrices and save tabular data to csv files
+    """
 
     if (dist_type == 'rf'):
         file_name = "rf_matrix.csv"
@@ -205,8 +230,6 @@ def make_distance_matrix(tree_dict, tree_list, dist_type):
                     distances.append(dist_val)
 
             csv_writer.writerow(distances)
-
-
 
 if __name__ == '__main__':
 

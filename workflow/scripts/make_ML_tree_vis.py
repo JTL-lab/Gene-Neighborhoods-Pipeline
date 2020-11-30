@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Script to ouput ete3 powered phylogenetic tree visualizations given
 a homologous sequence file.
@@ -13,23 +12,22 @@ import hashlib
 import ete3 as et
 import Levenshtein
 
-
-"""Function to remove all contigs from a homologous sequence .FASTA files"""
 def remove_contig(sequence_identifier):
-
+    """
+    Function to remove all contigs from a homologous sequence .FASTA files
+    """
     identifiers = sequence_identifier.split("_")
     taxon = identifiers[0]
 
     return taxon
 
-
-"""
-Returns a list of all taxa that share the same sequence
-Parameters:
-    seq_dict: keys <- taxa identifiers, values <- sequences
-    seq: sequence to look for
-"""
 def get_taxa(seq_dict, seq):
+    """
+    Returns a list of all taxa that share the same sequence
+    Parameters:
+        seq_dict: keys <- taxa identifiers, values <- sequences
+        seq: sequence to look for
+    """
 
     identical_taxa = []
 
@@ -40,17 +38,17 @@ def get_taxa(seq_dict, seq):
 
     return identical_taxa
 
-
-"""Calculates percent identity between two sequences"""
 def get_percent_identity(seq_1, seq_2):
-
+    """
+    Calculates percent identity between two sequences
+    """
     return round((Levenshtein.ratio(seq_1,seq_2)*100), 2)
 
-
-"""Replaces identical sequences with a surrogate to clean up
-phylogenetic tree"""
 def check_surrogates(hom_seq_file):
-
+    """
+    Replaces identical sequences with a surrogate to clean up
+    phylogenetic tree
+    """
     taxa = []
     seqs = []
 
@@ -109,10 +107,10 @@ def check_surrogates(hom_seq_file):
             new_file.write(clean_taxa+"\n")
             new_file.write(seqs[j]+"\n")
 
-
-"""Create ete powered visualizations of maximum-likelihood trees generated"""
 def make_tree_vis(newick_tree, gene_name, file_name):
-
+    """
+    Create visualizations of maximum-likelihood trees generated using ete
+    """
     tree = et.Tree(newick_tree)
 
     #Customizations
