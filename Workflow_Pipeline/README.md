@@ -1,7 +1,7 @@
 # Pipeline
 A bioinformatic pipeline for neighborhood prediction and clustering of RGI annotated genes.
 
-#################Instructions to run the code#################
+Instructions to run the code:
 
 
 1)Place all the files inside a folder that contains the input genome folder
